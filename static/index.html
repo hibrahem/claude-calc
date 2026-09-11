@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Code spend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <h1>Claude Code spend</h1>
+    <div class="top-right">
+      <span id="scan-note" class="muted">Scanning session logs…</span>
+      <button id="refresh" class="btn" type="button">Rescan</button>
+      <button id="theme" class="btn btn-icon" type="button" aria-label="Switch theme">◐</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-figure">
+      <div class="hero-label">Total in range</div>
+      <div id="kpi-total" class="hero-number">$0.00</div>
+      <dl class="hero-sub">
+        <div><dt>Messages</dt><dd id="kpi-msgs">0</dd></div>
+        <div><dt>Active days</dt><dd id="kpi-days">0</dd></div>
+        <div><dt>Per active day</dt><dd id="kpi-perday">$0.00</dd></div>
+        <div><dt>Cache reads share</dt><dd id="kpi-cache">0%</dd></div>
+      </dl>
+    </div>
+    <div class="filters" role="group" aria-label="Date range">
+      <div class="presets" id="presets">
+        <button type="button" data-preset="all" class="preset is-active">All time</button>
+        <button type="button" data-preset="mtd" class="preset">This month</button>
+        <button type="button" data-preset="lastmonth" class="preset">Last month</button>
+        <button type="button" data-preset="30d" class="preset">Last 30 days</button>
+        <button type="button" data-preset="7d" class="preset">Last 7 days</button>
+      </div>
+      <div class="custom-range">
+        <label>From <input type="date" id="from"></label>
+        <label>To <input type="date" id="to"></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Spend over time</h2>
+      <div class="seg" role="group" aria-label="Granularity">
+        <button type="button" data-gran="day" class="is-active">Daily</button>
+        <button type="button" data-gran="month">Monthly</button>
+      </div>
+    </div>
+    <div class="chart-wrap tall"><canvas id="time-chart"></canvas></div>
+  </section>
+
+  <section class="two-col">
+    <div class="card">
+      <div class="card-head"><h2>By model, split by what you paid for</h2></div>
+      <div class="chart-wrap" id="model-chart-wrap"><canvas id="model-chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Model totals</h2></div>
+      <div class="table-scroll">
+        <table class="data" id="model-table">
+          <thead><tr>
+            <th>Model</th><th class="num">Msgs</th><th class="num">Output tok</th>
+            <th class="num">Cache read tok</th><th class="num">Cache write tok</th><th class="num">Cost</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Projects</h2>
+      <span class="muted" id="proj-note"></span>
+    </div>
+    <div class="table-scroll">
+      <table class="data projects" id="proj-table">
+        <thead><tr>
+          <th></th><th>Project</th><th class="num">Sessions</th><th class="num">Msgs</th>
+          <th class="num">Cost</th><th class="share">Share</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span id="unknown-note"></span>
+    <span class="muted">Prices in $/MTok from costlib.py. Messages deduplicated by API id; cache writes billed at 5m or 1h rate.</span>
+  </footer>
+</div>
+
+<template id="session-rows">
+  <tr class="sess-head"><td></td><td colspan="5">
+    <table class="data sessions"><thead><tr>
+      <th>Started</th><th>Session</th><th>Models</th><th class="num">Msgs</th><th class="num">Cost</th>
+    </tr></thead><tbody></tbody></table>
+  </td></tr>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
