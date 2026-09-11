@@ -1,31 +1,32 @@
-"""Local web portal for Claude Code spend. Run: python3 serve.py [port]"""
+"""Local web portal for Claude Code spend."""
 import json
 import os
-import sys
+import threading
 import time
+import webbrowser
+from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from costlib import load
+from .costlib import load
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-STATIC = os.path.join(ROOT, "static")
+STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 
 class Handler(SimpleHTTPRequestHandler):
-    def __init__(self, *a, **kw):
+    def __init__(self, *a, projects_dir=None, **kw):
+        self.projects_dir = projects_dir
         super().__init__(*a, directory=STATIC, **kw)
 
     def do_GET(self):
         if self.path.split("?")[0] == "/api/rows":
             t0 = time.time()
-            data = load()
+            data = load(self.projects_dir) if self.projects_dir else load()
             data["generated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
             data["scan_ms"] = int((time.time() - t0) * 1000)
             body = json.dumps(data).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
             return
@@ -42,11 +43,16 @@ class Handler(SimpleHTTPRequestHandler):
             super().log_message(fmt, *args)
 
 
-if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"Claude spend portal: http://localhost:{port}")
+def serve(port=8765, open_browser=True, projects_dir=None):
+    handler = partial(Handler, projects_dir=projects_dir)
+    srv = ThreadingHTTPServer(("127.0.0.1", port), handler)
+    url = f"http://localhost:{port}"
+    print(f"Claude Code spend portal: {url}  (Ctrl+C to stop)")
+    if open_browser:
+        threading.Timer(0.5, webbrowser.open, args=(url,)).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        srv.server_close()
