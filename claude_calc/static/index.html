@@ -30,6 +30,7 @@
         <div><dt>Active days</dt><dd id="kpi-days">0</dd></div>
         <div><dt>Per active day</dt><dd id="kpi-perday">$0.00</dd></div>
         <div><dt>Cache reads share</dt><dd id="kpi-cache">0%</dd></div>
+        <div class="forecast"><dt id="kpi-forecast-label">This month, forecast</dt><dd id="kpi-forecast">–</dd><small id="kpi-forecast-note" class="muted"></small></div>
       </dl>
     </div>
     <div class="filters" role="group" aria-label="Date range">
@@ -77,6 +78,27 @@
     </div>
   </section>
 
+  <section class="two-col">
+    <div class="card">
+      <div class="card-head"><h2>Efficiency</h2></div>
+      <dl class="stats">
+        <div><dt>Cache hit rate</dt><dd id="eff-hit">–</dd><small>of context tokens served from cache</small></div>
+        <div><dt>Cost per prompt</dt><dd id="eff-prompt">–</dd><small id="eff-prompts-note"></small></div>
+        <div><dt>Avg context per message</dt><dd id="eff-ctx-avg">–</dd><small>input + cache tokens sent each turn</small></div>
+        <div><dt>Peak context</dt><dd id="eff-ctx-max">–</dd><small id="eff-ctx-max-note"></small></div>
+        <div><dt>Cache writes at 1h rate</dt><dd id="eff-w1">–</dd><small>1h writes cost 60% more than 5m</small></div>
+        <div><dt>Messages over 150k</dt><dd id="eff-big">–</dd><small>context this large costs the most per turn</small></div>
+      </dl>
+      <h3>Messages by context size</h3>
+      <div class="chart-wrap short"><canvas id="ctx-chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>When you spend</h2><span class="muted">local time</span></div>
+      <div class="heat" id="heat"></div>
+      <div class="heat-legend"><span>less</span><i data-step="1"></i><i data-step="2"></i><i data-step="3"></i><i data-step="4"></i><i data-step="5"></i><i data-step="6"></i><span>more</span></div>
+    </div>
+  </section>
+
   <section class="card">
     <div class="card-head">
       <h2>Projects</h2>
@@ -102,7 +124,7 @@
 <template id="session-rows">
   <tr class="sess-head"><td></td><td colspan="5">
     <table class="data sessions"><thead><tr>
-      <th>Started</th><th>Session</th><th>Models</th><th class="num">Msgs</th><th class="num">Cost</th>
+      <th>Started</th><th>Session</th><th>Models</th><th class="num">Prompts</th><th class="num">Msgs</th><th class="num">Peak ctx</th><th class="num">$/prompt</th><th class="num">Cost</th>
     </tr></thead><tbody></tbody></table>
   </td></tr>
 </template>

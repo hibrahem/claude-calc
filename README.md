@@ -3,9 +3,15 @@
 See what your Claude Code sessions would cost at pay-per-token API rates.
 
 It reads the session logs Claude Code keeps in `~/.claude/projects`, prices
-every API message, and shows the result in a local dashboard: spend over time,
-cost per model split by token type, and projects you can expand down to
-individual sessions.
+every API message, and shows the result in a local dashboard:
+
+- spend over time, with a run-rate forecast for the current month
+- cost per model, split into output / cache reads / cache writes / input
+- efficiency: cache hit rate, cost per prompt, context size per message,
+  and how many messages ran with more than 150k tokens of context
+- a weekday-by-hour heatmap of when you spend
+- projects you can expand down to individual sessions, each with its first
+  prompt, prompt count, peak context, and cost per prompt
 
 ## Install
 

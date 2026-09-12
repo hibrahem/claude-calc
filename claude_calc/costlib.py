@@ -37,6 +37,19 @@ def _first_text(content):
     return ""
 
 
+def _is_prompt(record):
+    """True for a message typed by the user; False for tool results, skill text, notifications."""
+    if record.get("isMeta") or record.get("isCompactSummary"):
+        return False
+    content = (record.get("message") or {}).get("content")
+    if isinstance(content, list) and any(
+        isinstance(p, dict) and p.get("type") == "tool_result" for p in content
+    ):
+        return False
+    text = _first_text(content).lstrip()
+    return bool(text) and not text.startswith("<")
+
+
 def _display_project(cwd, dirname):
     home = os.path.expanduser("~")
     if cwd:
@@ -54,7 +67,7 @@ def load(projects_dir=PROJECTS_DIR):
     """Return {"rows": [...], "sessions": {...}, "unknown": {...}, "pricing": {...}}.
 
     rows: one record per deduplicated assistant API message.
-    sessions: sessionId -> {"project", "started", "title"}.
+    sessions: sessionId -> {"project", "started", "title", "prompts"}.
     unknown: model -> total tokens for models with no price.
     """
     seen = {}
@@ -75,12 +88,13 @@ def load(projects_dir=PROJECTS_DIR):
                         "project": _display_project(d.get("cwd"), dirname),
                         "started": d.get("timestamp", ""),
                         "title": "",
+                        "prompts": 0,
                     })
-                    if not meta["title"]:
-                        text = _first_text((d.get("message") or {}).get("content"))
-                        text = " ".join(text.split())
-                        if text and not text.startswith("<"):
-                            meta["title"] = text[:140]
+                    if _is_prompt(d):
+                        meta["prompts"] += 1
+                        if not meta["title"]:
+                            content = (d.get("message") or {}).get("content")
+                            meta["title"] = " ".join(_first_text(content).split())[:140]
                     continue
                 if kind != "assistant":
                     continue
@@ -115,6 +129,7 @@ def load(projects_dir=PROJECTS_DIR):
             "project": _display_project(d.get("cwd"), dirname),
             "started": ts,
             "title": "",
+            "prompts": 0,
         })
         if ts and (not meta["started"] or ts < meta["started"]):
             meta["started"] = ts
